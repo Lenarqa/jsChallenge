@@ -13,11 +13,11 @@
         <h2>Challenge №1: Your age in days!</h2>
             <div class="flex-box-container-1">
                 <div>
-                    <button class="btn btn-primary" onclick="ageInDays">Clic me</button>
+                    <button onclick='ageInDays()' class="btn btn-primary" >Clic me</button>
                 </div>
                 
                 <div>
-                    <button class="btn btn-danger">Reset</button>
+                    <button class="btn btn-danger" onclick="resetAnswear()">Reset</button>
                 </div>
             </div>
 
@@ -26,6 +26,13 @@
 
                 </div>
             </div>
+     </div>
+
+     <div class="container-1">
+        <h2>Challenge 2: Cats generator</h2>
+        <button class="btn btn-success" id = "cat-generator" onclick="generateCat()">Generate</button>  
+        <div class="flex-box-container-2" id="flex-box-container-2">
+        </div>
      </div>
 
 
