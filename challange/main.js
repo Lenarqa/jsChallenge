@@ -159,25 +159,34 @@ function randomBtn() {
 //challenge 5 blackjack
 document.querySelector('#Black-Jack-Hit-Btn').addEventListener('click', blackJackHit);
 document.querySelector('#BlackJackDealBtn').addEventListener('click', dealBtn);
+document.querySelector('#BlackJackStandBtn').addEventListener('click', dealerLogic);
 
 let blackJackGame = {
     'you': {'scoreSpan': '#yourBJres', 'div': '#your-box', 'score': 0},
     'dialer': {'scoreSpan': '#dealerBJres', 'div': '#dealer-box', 'score': 0},
     'cards':['2','3','4','5','6','7','8','9','10','A','J','K','Q'], 
     'cardsMap': {'2': 2, '3': 3,'4': 4, '5': 5, '6': 6, '7': 7,'8': 8, '9': 9,'10': 10, 'A': [1,11], 'J': 10, 'K': 10, 'Q': 10},
-}
+    'wins': 0,
+    'loses' : 0,
+    'draws' : 0,
+    'isStand' : false,
+    'turnsOver' : false,
+};
 
 const you = blackJackGame['you'];
 const dialer = blackJackGame['dialer'];
 
 const hitSound = new Audio('sounds/swish.m4a');
+const wonSound = new Audio('sounds/cash.mp3');
+const lostSound = new Audio('sounds/aww.mp3');
 
 function blackJackHit() {
-    let card = randomCard();    
-    showCard(you, card);
-    updateScore(you, card);
-    showScore(you);
-    //console.log("score = "  + you['score']);
+    if(blackJackGame['isStand'] === false){
+        let card = randomCard();    
+        showCard(you, card);
+        updateScore(you, card);
+        showScore(you); 
+    }
 }
 
 function showCard(activePlayer, card) {
@@ -191,27 +200,36 @@ function showCard(activePlayer, card) {
 }
 
 function dealBtn() {
-    //remove img
-    let yourImg = document.querySelector('#your-box').querySelectorAll('img');
-    let dialerImg = document.querySelector('#dealer-box').querySelectorAll('img');
-    
-    for(var i = 0; i< dialerImg.length; i++){
-        dialerImg[i].remove();
+    if(blackJackGame['turnsOver'] === true){
+        //remove img
+        blackJackGame['isStand'] = false;
+
+        let yourImg = document.querySelector('#your-box').querySelectorAll('img');
+        let dialerImg = document.querySelector('#dealer-box').querySelectorAll('img');
+        
+        for(var i = 0; i< dialerImg.length; i++){
+            dialerImg[i].remove();
+        }
+
+        for(var i = 0; i < yourImg.length; i++){
+            yourImg[i].remove();
+        }
+
+        //remove score
+        you['score'] = 0;
+        dialer['score'] = 0;
+
+        document.querySelector('#yourBJres').textContent = 0;
+        document.querySelector('#yourBJres').style.color = 'white';
+
+        document.querySelector('#dealerBJres').textContent = 0;
+        document.querySelector('#dealerBJres').style.color = 'white';
+
+        document.querySelector('#blackjack-result').textContent = "Lets play";
+        document.querySelector('#blackjack-result').style.color = 'black';  
+        
+        blackJackGame['turnsOver'] = false; //true??
     }
-
-    for(var i = 0; i < yourImg.length; i++){
-        yourImg[i].remove();
-    }
-
-    //remove score
-    you['score'] = 0;
-    dialer['score'] = 0;
-
-    document.querySelector('#yourBJres').textContent = 0;
-    document.querySelector('#yourBJres').style.color = 'white';
-
-    document.querySelector('#dealerBJres').textContent = 0;
-    document.querySelector('#dealerBJres').style.color = 'white';
 }
 
 console.log("Lenght = " + blackJackGame['cards'].length);
@@ -239,9 +257,82 @@ function showScore(activePlayer){
         document.querySelector(activePlayer['scoreSpan']).style.color = 'red';
     }else{
         document.querySelector(activePlayer['scoreSpan']).textContent = activePlayer['score'];
-    }
-    
+    }   
 }
+
+async function dealerLogic(){
+    blackJackGame['isStand'] = true;
+    
+    while(dialer['score'] < 16 && blackJackGame['isStand'] === true){     
+        let card = randomCard();
+        showCard(dialer,card);
+        updateScore(dialer, card);
+        showScore(dialer);
+        await sleep(1000);
+    }
+
+    blackJackGame['turnsOver'] = true;
+    showResult(computerWinner());   
+}
+
+function sleep(ms){
+    return new Promise(resolve => setTimeout(resolve,ms))
+}
+
+//return who won
+//update result table
+function computerWinner(){
+    let winner;
+
+    if(you['score'] <= 21){
+        
+        if(you['score'] > dialer['score'] || dialer['score'] > 21){
+            blackJackGame['wins']++;
+            winner = you;
+        }else if(you['score'] < dialer['score'] ){
+            blackJackGame['loses']++;
+            winner = dialer;
+        }else if(you['score'] === dialer['score']) {
+            blackJackGame['draws']++;
+        }
+
+    }else if(you['score'] > 21 && dialer['score'] <= 21){
+        blackJackGame['loses']++;
+        winner = dialer;
+    
+    }else if(you['score'] > 21 && dialer['score'] > 21 ) {
+        blackJackGame['draws']++;
+    }
+
+    console.log(blackJackGame);
+    return winner;
+}
+
+function showResult(winner){
+    if(blackJackGame['turnsOver'] === true){
+        let massage, massageColor;
+
+        if(winner === you){
+            document.querySelector('#wins').textContent = blackJackGame['wins'];
+            massage = 'You won!';
+            massageColor = 'green';
+            wonSound.play();
+        }else if (winner === dialer) {
+            document.querySelector('#loses').textContent = blackJackGame['loses'];
+            massage = 'You lost!';
+            massageColor = 'red';
+            lostSound.play();
+        }else{
+            document.querySelector("#draws").textContent = blackJackGame['draws'];
+            massage = 'You drew';
+            massageColor = 'black';
+        }
+
+        document.querySelector('#blackjack-result').textContent = massage;
+        document.querySelector('#blackjack-result').style.color = massageColor;   
+    }
+}
+
 
 //test arrow function
 /*
